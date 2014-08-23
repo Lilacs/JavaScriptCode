@@ -1,0 +1,170 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+	.body {
+		background-color: gray;
+	}
+
+	.outer {
+		position: absolute;
+	}
+
+	.inner {
+		position: absolute;
+		height: 200px;
+		width: 200px;
+		background:#000;
+		filter:alpha(opacity=0.1);
+		opacity:0.1;
+		border-width: 0.5px;
+		border-style: dashed;
+		border-color: gray;
+		z-index: 999;
+		cursor: move;
+	}
+	.afterImg {
+		position: absolute;
+		background:#000;
+		z-index: 9;
+		filter:alpha(opacity=30);
+		opacity:0.3;
+		z-index: 9;
+	}
+
+	.beforeImg {
+		position: absolute;
+		clip: rect(0px, 200px, 200px, 0px);
+		z-index: 99;
+	}
+
+	.rect {
+		background-color: white;
+		height: 20px;
+		width: 20px;
+		position: absolute;
+		z-index: 9999;
+	}
+	.bottom-right {
+		right: 0px;
+		bottom: 0px;
+		cursor: nw-resize;
+	}
+</style>
+<title>test cut</title>
+</head>
+<body class="body">
+	<div class="outer">
+		<img src="Bluehills.jpg" class="afterImg">
+		<img src="Bluehills.jpg" class="beforeImg" id="showImg">
+		<div class="inner" id="editArea">
+			<div class="rect bottom-right" id="resize"></div>
+		</div>		
+	</div>
+</body>
+<script type="text/javascript">
+	var isIE = (window.navigator.userAgent.indexOf("IE") == -1) ? false : true;
+	var proportion = 0.714
+	var flag = false;
+	var oldX, oldY;
+	setFlagById("editArea","resize");
+	document.getElementById("editArea").onmousemove = function(e) {
+		//判断鼠标是否按住
+		if(!flag) 
+			return;
+
+		var editArea = document.getElementById("editArea");
+
+		var eve = e || window.event;
+		
+		//获取偏移量
+		var x = eve.clientX - oldX;
+		var y = eve.clientY - oldY;
+
+		var left = (parseInt(editArea.style.left) || 0)  + x;
+		var top = (parseInt(editArea.style.top) || 0 ) + y;
+		
+
+		//判断是否超出边界
+
+		editArea.style.left = (left < 0 ? 0 : left) + "px";
+		editArea.style.top = (top < 0 ?  0 : top) + "px";
+
+		var width = parseInt(editArea.style.width) || 200;
+		var height = parseInt(editArea.style.height) || 200 ;
+
+		var showImg = document.getElementById("showImg");
+		showImg.style.clip = "rect(" + top + "px " + (left + width) +"px " + (top + height) + "px " + left +"px)";
+
+
+		//赋值 -> 下一次移动的时候用
+		oldX = eve.clientX;
+		oldY = eve.clientY;
+
+	}
+	
+
+	document.getElementById("resize").onmousemove = function(e) {
+		//阻止事件冒泡机制
+		var eve = e || window.event;
+		if(isIE){
+			window.event.cancelBubble = true;
+		}else {
+			eve.stopPropagation(); 
+		}
+		
+
+		if(!flag)
+			return
+
+		var resize = document.getElementById("resize");
+		var editArea = document.getElementById("editArea");
+
+		
+		//获取偏移量
+		var x = eve.clientX - oldX;
+		var y = eve.clientY - oldY;
+
+		var width = (parseInt(editArea.style.width) || 200)  + x;
+		var height = (parseInt(editArea.style.height) || 200 ) + y;
+
+		editArea.style.width = width + "px";
+		editArea.style.height = height + "px";
+
+		var showImg = document.getElementById("showImg");
+
+		var left = parseInt(editArea.style.left) || 0;
+		var top = parseInt(editArea.style.top) || 0;
+
+		showImg.style.clip = "rect(" + top + "px " + (left + width) +"px " + (top + height) + "px " + left +"px)";
+
+		oldX = eve.clientX;
+		oldY = eve.clientY;
+
+	}
+
+	function setFlagById() {
+		for(var i = 0; i < arguments.length; i++) {
+			
+			document.getElementById(arguments[i]).onmousedown = function(e) {
+				//获取鼠标点击的值（起点）
+				var eve = e || window.event;
+				oldX = eve.clientX;
+				oldY = eve.clientY;
+				flag = true;
+			}
+
+			document.getElementById(arguments[i]).onmouseup = function(e) {
+				flag = false;
+			}
+
+			document.getElementById(arguments[i]).onmouseout = function(e) {
+				flag = false;
+			}
+
+		}
+	}
+
+</script>
+</html>
