@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+	.body {
+		background-color: gray;
+	}
+
+	.outer {
+		position: absolute;
+		left: 100px;
+	}
+
+	.inner {
+		position: absolute;
+		height: 200px;
+		width: 200px;
+		background:#000;
+		filter:alpha(opacity=0.1);
+		opacity:0.1;
+		border-width: 0.5px;
+		border-style: dashed;
+		border-color: gray;
+		z-index: 999;
+		cursor: move;
+	}
+	.afterImg {
+		position: absolute;
+		background:#000;
+		z-index: 9;
+		filter:alpha(opacity=30);
+		opacity:0.3;
+		z-index: 9;
+		width: 400px;
+	}
+
+	.beforeImg {
+		position: absolute;
+		clip: rect(0px, 200px, 200px, 0px);
+		z-index: 99;
+		width: 400px;
+	}
+
+	.rect {
+		background-color: white;
+		height: 20px;
+		width: 20px;
+		position: absolute;
+		z-index: 9999;
+	}
+	.bottom-right-btn {
+		right: 0px;
+		bottom: 0px;
+		cursor: nw-resize;
+	}
+</style>
+<title>test cut</title>
+</head>
+<body class="body">
+
+	<div class="outer">
+		<img src="Bluehills.jpg" class="afterImg">
+		<img src="Bluehills.jpg" class="beforeImg" id="showImg">
+		<div class="inner" id="editArea">
+			<div class="rect bottom-right-btn" id="resize"></div>
+		</div>		
+	</div>
+	<button onclick="getPostion()">获取位置</button>
+</body>
+<script type="text/javascript">
+	var isIE = (window.navigator.userAgent.indexOf("IE") == -1) ? false : true;
+	var proportion = 0.714 //宽 / 高
+	var flag = false;
+	var oldX, oldY;
+	var a,b,c,d;
+	//获取控件
+	var editArea = document.getElementById("editArea");
+	var showImg = document.getElementById("showImg");
+	
+	setFlagById("editArea","resize");
+	bindOnmouseMoveById("editArea","resize");
+
+	function setFlagById() {
+		for(var i = 0; i < arguments.length; i++) {
+			
+			document.getElementById(arguments[i]).onmousedown = function(e) {
+				//获取鼠标点击的值（起点）
+				var eve = e || window.event;
+				oldX = eve.clientX;
+				oldY = eve.clientY;
+				flag = true;
+			}
+
+			document.getElementById(arguments[i]).onmouseup = function(e) {
+				flag = false;
+			}
+
+			document.getElementById(arguments[i]).onmouseout = function(e) {
+				flag = false;
+			}
+
+		}
+	}
+
+	function bindOnmouseMoveById() {
+		for(var i = 0; i < arguments.length; i++) {
+			document.getElementById(arguments[i]).onmousemove = function(e) {
+				//阻止事件冒泡机制
+				var eve = e || window.event;
+				if(isIE){
+					window.event.cancelBubble = true;
+				}else {
+					eve.stopPropagation(); 
+				}
+
+
+				if(!flag) 
+					return
+
+				//获取偏移量
+				var x = eve.clientX - oldX;
+				var y = eve.clientY - oldY;
+
+				var width, height, left, top;
+
+				//判断是执行的哪个事件
+				if(this.id === "resize") {
+					//获取拉伸之后的高度与宽度
+					height = (parseInt(editArea.style.height) || 200 ) + y;
+					width = height * proportion  + x;
+
+					editArea.style.width = width + "px";
+					editArea.style.height = height + "px";
+
+					left = parseInt(editArea.style.left) || 0;
+					top = parseInt(editArea.style.top) || 0;
+				
+				}else if(this.id === "editArea") {
+					//获取绝对定位的数值
+					left = (parseInt(editArea.style.left) || 0)  + x;
+					top = (parseInt(editArea.style.top) || 0 ) + y;
+
+					//判断是否超出边界
+					editArea.style.left = (left < 0 ? 0 : left) + "px";
+					editArea.style.top = (top < 0 ?  0 : top) + "px";
+
+					height = parseInt(editArea.style.height) || 200;
+					width = parseInt(editArea.style.width) || 200;
+
+				}
+
+				a = top;
+				b = width;
+				c = height;
+				d = left;
+
+				//设置要截取的画面
+				showImg.style.clip = "rect(" + top + "px " + (left + width) +"px " + (top + height) + "px " + left +"px)";
+
+				//赋值 -> 下一次移动的时候用
+				oldX = eve.clientX;
+				oldY = eve.clientY;
+
+			}
+		}
+	}
+
+	function getPostion(){
+		alert(a +", " + b + "," + c + "," + d + ",");
+	}
+
+</script>
+</html>
