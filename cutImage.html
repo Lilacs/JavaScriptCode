@@ -9,6 +9,7 @@
 
 	.outer {
 		position: absolute;
+		left: 100px;
 	}
 
 	.inner {
@@ -31,12 +32,14 @@
 		filter:alpha(opacity=30);
 		opacity:0.3;
 		z-index: 9;
+		width: 400px;
 	}
 
 	.beforeImg {
 		position: absolute;
 		clip: rect(0px, 200px, 200px, 0px);
 		z-index: 99;
+		width: 400px;
 	}
 
 	.rect {
@@ -46,7 +49,7 @@
 		position: absolute;
 		z-index: 9999;
 	}
-	.bottom-right {
+	.bottom-right-btn {
 		right: 0px;
 		bottom: 0px;
 		cursor: nw-resize;
@@ -55,94 +58,28 @@
 <title>test cut</title>
 </head>
 <body class="body">
+
 	<div class="outer">
 		<img src="Bluehills.jpg" class="afterImg">
 		<img src="Bluehills.jpg" class="beforeImg" id="showImg">
 		<div class="inner" id="editArea">
-			<div class="rect bottom-right" id="resize"></div>
+			<div class="rect bottom-right-btn" id="resize"></div>
 		</div>		
 	</div>
+	<button onclick="getPostion()">获取位置</button>
 </body>
 <script type="text/javascript">
 	var isIE = (window.navigator.userAgent.indexOf("IE") == -1) ? false : true;
-	var proportion = 0.714
+	var proportion = 0.714 //宽 / 高
 	var flag = false;
 	var oldX, oldY;
-	setFlagById("editArea","resize");
-	document.getElementById("editArea").onmousemove = function(e) {
-		//判断鼠标是否按住
-		if(!flag) 
-			return;
-
-		var editArea = document.getElementById("editArea");
-
-		var eve = e || window.event;
-		
-		//获取偏移量
-		var x = eve.clientX - oldX;
-		var y = eve.clientY - oldY;
-
-		var left = (parseInt(editArea.style.left) || 0)  + x;
-		var top = (parseInt(editArea.style.top) || 0 ) + y;
-		
-
-		//判断是否超出边界
-
-		editArea.style.left = (left < 0 ? 0 : left) + "px";
-		editArea.style.top = (top < 0 ?  0 : top) + "px";
-
-		var width = parseInt(editArea.style.width) || 200;
-		var height = parseInt(editArea.style.height) || 200 ;
-
-		var showImg = document.getElementById("showImg");
-		showImg.style.clip = "rect(" + top + "px " + (left + width) +"px " + (top + height) + "px " + left +"px)";
-
-
-		//赋值 -> 下一次移动的时候用
-		oldX = eve.clientX;
-		oldY = eve.clientY;
-
-	}
+	var a,b,c,d;
+	//获取控件
+	var editArea = document.getElementById("editArea");
+	var showImg = document.getElementById("showImg");
 	
-
-	document.getElementById("resize").onmousemove = function(e) {
-		//阻止事件冒泡机制
-		var eve = e || window.event;
-		if(isIE){
-			window.event.cancelBubble = true;
-		}else {
-			eve.stopPropagation(); 
-		}
-		
-
-		if(!flag)
-			return
-
-		var resize = document.getElementById("resize");
-		var editArea = document.getElementById("editArea");
-
-		
-		//获取偏移量
-		var x = eve.clientX - oldX;
-		var y = eve.clientY - oldY;
-
-		var width = (parseInt(editArea.style.width) || 200)  + x;
-		var height = (parseInt(editArea.style.height) || 200 ) + y;
-
-		editArea.style.width = width + "px";
-		editArea.style.height = height + "px";
-
-		var showImg = document.getElementById("showImg");
-
-		var left = parseInt(editArea.style.left) || 0;
-		var top = parseInt(editArea.style.top) || 0;
-
-		showImg.style.clip = "rect(" + top + "px " + (left + width) +"px " + (top + height) + "px " + left +"px)";
-
-		oldX = eve.clientX;
-		oldY = eve.clientY;
-
-	}
+	setFlagById("editArea","resize");
+	bindOnmouseMoveById("editArea","resize");
 
 	function setFlagById() {
 		for(var i = 0; i < arguments.length; i++) {
@@ -164,6 +101,73 @@
 			}
 
 		}
+	}
+
+	function bindOnmouseMoveById() {
+		for(var i = 0; i < arguments.length; i++) {
+			document.getElementById(arguments[i]).onmousemove = function(e) {
+				//阻止事件冒泡机制
+				var eve = e || window.event;
+				if(isIE){
+					window.event.cancelBubble = true;
+				}else {
+					eve.stopPropagation(); 
+				}
+
+
+				if(!flag) 
+					return
+
+				//获取偏移量
+				var x = eve.clientX - oldX;
+				var y = eve.clientY - oldY;
+
+				var width, height, left, top;
+
+				//判断是执行的哪个事件
+				if(this.id === "resize") {
+					//获取拉伸之后的高度与宽度
+					height = (parseInt(editArea.style.height) || 200 ) + y;
+					width = height * proportion  + x;
+
+					editArea.style.width = width + "px";
+					editArea.style.height = height + "px";
+
+					left = parseInt(editArea.style.left) || 0;
+					top = parseInt(editArea.style.top) || 0;
+				
+				}else if(this.id === "editArea") {
+					//获取绝对定位的数值
+					left = (parseInt(editArea.style.left) || 0)  + x;
+					top = (parseInt(editArea.style.top) || 0 ) + y;
+
+					//判断是否超出边界
+					editArea.style.left = (left < 0 ? 0 : left) + "px";
+					editArea.style.top = (top < 0 ?  0 : top) + "px";
+
+					height = parseInt(editArea.style.height) || 200;
+					width = parseInt(editArea.style.width) || 200;
+
+				}
+
+				a = top;
+				b = width;
+				c = height;
+				d = left;
+
+				//设置要截取的画面
+				showImg.style.clip = "rect(" + top + "px " + (left + width) +"px " + (top + height) + "px " + left +"px)";
+
+				//赋值 -> 下一次移动的时候用
+				oldX = eve.clientX;
+				oldY = eve.clientY;
+
+			}
+		}
+	}
+
+	function getPostion(){
+		alert(a +", " + b + "," + c + "," + d + ",");
 	}
 
 </script>
